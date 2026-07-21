@@ -1,9 +1,5 @@
 """
 Central configuration for the satellite mesh routing sim.
-
-Fill in the constants once and treat this as ground truth for every
-other module -- topology, link, routing, and sim should all import
-from here rather than hardcoding numbers.
 """
 from dataclasses import dataclass, field
 from typing import List, Tuple
@@ -12,26 +8,31 @@ from typing import List, Tuple
 @dataclass
 class Config:
     # --- Constellation ---
-    num_planes: int = 0          # TODO: pick a value (Phase 0)
-    sats_per_plane: int = 0      # TODO
-    altitude_km: float = 0.0     # TODO
-    inclination_deg: float = 0.0  # TODO
+    num_planes: int = 8          
+    sats_per_plane: int = 18      
+    altitude_km: float = 550.0     
+    inclination_deg: float = 53.0  
 
     # --- Ground stations ---
     ground_stations: List[Tuple[float, float]] = field(default_factory=list)
-    # TODO: list of (lat_deg, lon_deg)
+    ground_stations.append((47.6, -122.3))
+    ground_stations.append((40.6, -105.0))
+    ground_stations.append((51.5, -0.1))
+    ground_stations.append((1.35, 103.8))
+    ground_stations.append((-33.9, 151.2))
+    ground_stations.append((-26.2, 28))
 
     # --- Links ---
-    max_isl_range_km: float = 0.0   # TODO: max inter-satellite link range
-    min_elevation_deg: float = 0.0  # TODO: min elevation for sat-ground link
+    max_isl_range_km: float = 2000.0
+    min_elevation_deg: float = 25.0  
 
     # --- Simulation ---
-    duration_s: float = 0.0      # TODO
-    timestep_s: float = 0.0      # TODO
+    duration_s: float = 12000.0      
+    timestep_s: float = 10.0      
     random_seed: int = 42
 
-    # --- Routing (Phase 4) ---
-    max_convergence_rounds: int = 0  # TODO: bound on link-state exchange rounds
+    # --- Routing ---
+    max_convergence_rounds: int = 5
 
 
 DEFAULT_CONFIG = Config()
