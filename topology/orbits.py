@@ -28,9 +28,9 @@ def ground_station_positions(config) -> np.ndarray:
     TODO: convert config.ground_stations (lat/lon pairs) to the same
     coordinate frame you use for satellites.
     """
+    
     raise NotImplementedError
 
 
 def orbital_period_s(config) -> float:
-    """TODO: needed for the periodicity test in tests/test_topology.py."""
-    raise NotImplementedError
+    return config.orbital_period_s

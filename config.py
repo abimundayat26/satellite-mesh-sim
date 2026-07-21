@@ -3,6 +3,7 @@ Central configuration for the satellite mesh routing sim.
 """
 from dataclasses import dataclass, field
 from typing import List, Tuple
+import numpy as np
 
 
 @dataclass
@@ -33,6 +34,12 @@ class Config:
 
     # --- Routing ---
     max_convergence_rounds: int = 5
+
+    # --- Constants ---
+    mu = 3.9 * 10**5
+    r_earth_km = 6371.0
+    r_orbit_km = r_earth_km + altitude_km
+    orbital_period_s = 2 * np.pi * np.sqrt(r_orbit_km**3 / mu)
 
 
 DEFAULT_CONFIG = Config()
