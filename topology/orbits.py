@@ -38,4 +38,6 @@ def ground_station_positions(config) -> np.ndarray:
 
 
 def orbital_period_s(config) -> float:
-    return config.orbital_period_s
+    r_orbit_km = config.r_earth_km + config.altitude_km
+    orbital_period_s = 2 * np.pi * np.sqrt(r_orbit_km**3 / config.mu)
+    return orbital_period_s
