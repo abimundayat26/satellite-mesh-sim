@@ -32,8 +32,9 @@ class Config:
     # --- Constants ---
     mu = 398600.4418
     r_earth_km = 6371.0
-    r_orbit_km = r_earth_km + altitude_km
+    
     def __post_init__(self):
+        r_orbit_km = self.r_earth_km + self.altitude_km
         self.ground_stations.append((47.6, -122.3))
         self.ground_stations.append((40.6, -105.0))
         self.ground_stations.append((51.5, -0.1))
