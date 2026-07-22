@@ -7,29 +7,34 @@ See docs/architecture.md for the full spec once you've written it.
 """
 import numpy as np
 
-
+# Compute satellite positions in 3D space at time t
 def satellite_positions(t: float, config) -> np.ndarray:
-    """
-    Return an (N, 3) array of satellite positions at time t (seconds).
+    sat_positions = []
+    for p in range(config.num_planes):
+        for i in range(config.sats_per_plane):
+            phase_offset = 2 * np.pi * i / config.sats_per_plane
+            angular_position = phase_offset + 2 * np.pi * t / config.orbital_period_s
+            x = config.r_orbit_km * np.cos(angular_position)
+            y = config.r_orbit_km * np.sin(angular_position)
+            z = y  * np.sin(np.radians(config.inclination_deg))
+            y *= np.cos(np.radians(config.inclination_deg))
+            omega = 2 * np.pi * p / config.num_planes
+            x_temp = x
+            y_temp = y
+            x = x * np.cos(omega) - y * np.sin(omega)
+            y = x_temp * np.sin(omega) + y_temp * np.cos(omega)
+            sat_positions.append((x, y, z))
+    return np.array(sat_positions)
 
-    TODO:
-      for each plane p in range(config.num_planes):
-          for each satellite index i in range(config.sats_per_plane):
-              compute phase offset + angular position at time t
-              convert to a 3D position given orbital radius / inclination / RAAN
-    """
-    raise NotImplementedError
-
-
+# Return an array of ground station positions (lat/long to xyz)
 def ground_station_positions(config) -> np.ndarray:
-    """
-    Return a (K, 3) array of fixed ground station positions.
-
-    TODO: convert config.ground_stations (lat/lon pairs) to the same
-    coordinate frame you use for satellites.
-    """
-    
-    raise NotImplementedError
+    ground_station_positions = []
+    for lat, lon in config.ground_stations:
+        x = config.r_earth_km * np.cos(np.radians(lat)) * np.cos(np.radians(lon))
+        y = config.r_earth_km * np.cos(np.radians(lat)) * np.sin(np.radians(lon))
+        z = config.r_earth_km * np.sin(np.radians(lat))
+        ground_station_positions.append((x, y, z))
+    return np.array(ground_station_positions)
 
 
 def orbital_period_s(config) -> float:
