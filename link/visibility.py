@@ -149,3 +149,18 @@ def link_graph(positions: np.ndarray, num_sats: int, config, t_s: float = 0.0) -
     distance_km = np.where(ok, dist, np.inf)
 
     return LinkGraph(t_s=t_s, num_sats=num_sats, distance_km=distance_km)
+
+
+def link_graph_cpp(positions: np.ndarray, num_sats: int, config, t_s: float = 0.0) -> LinkGraph:
+    """Wraps the C++ extension (Phase 3). Same output as link_graph()."""
+    import visibility_ext  # lazy: keeps this module importable when the ext isn't built
+
+    positions = np.asarray(positions, dtype=np.float64)
+    distance_km = visibility_ext.link_distances(
+        positions,
+        num_sats,
+        config.max_isl_range_km,
+        config.min_elevation_deg,
+        EARTH_RADIUS_KM,
+    )
+    return LinkGraph(t_s=t_s, num_sats=num_sats, distance_km=distance_km)
