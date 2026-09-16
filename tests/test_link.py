@@ -86,6 +86,53 @@ def test_elevation_overhead_and_boundary():
     assert elevation_deg(ground, sat_below) < min_el
 
 
+def test_has_line_of_sight_raises_on_coincident_positions():
+    a = np.array([R + 550.0, 0.0, 0.0])
+    assert (a == a).all()
+    with pytest.raises(ValueError):
+        has_line_of_sight(a, a.copy(), R)
+
+
+def test_elevation_deg_raises_on_coincident_positions():
+    # A satellite and ground station at the exact same point: ‖s-g‖ == 0,
+    # so elevation is undefined and must not silently divide by zero.
+    same_point = np.array([R, 0.0, 0.0])
+    with pytest.raises(ValueError):
+        elevation_deg(same_point, same_point.copy())
+
+
+def test_elevation_deg_raises_regardless_of_which_arg_is_ground_vs_sat():
+    # Same coincident-position guard must trigger no matter which side of
+    # the (ground, sat) pair the caller happens to pass; only the vector
+    # ‖s-g‖ matters, not which name is bound to which array.
+    same_point = np.array([R + 100.0, 50.0, -20.0])
+    with pytest.raises(ValueError):
+        elevation_deg(same_point, same_point.copy())
+    with pytest.raises(ValueError):
+        elevation_deg(same_point.copy(), same_point)
+
+
+def test_elevation_deg_still_correct_near_but_not_at_coincidence():
+    # Guard against an overly aggressive fix that rejects near-zero (but
+    # nonzero) separations -- only exact coincidence should raise.
+    ground = np.array([R, 0.0, 0.0])
+    sat = np.array([R + 1e-6, 0.0, 0.0])  # 1 mm above the ground station
+    assert elevation_deg(ground, sat) == pytest.approx(90.0, abs=1e-3)
+
+
+def test_link_graph_naive_raises_on_coincident_sat_ground_pair():
+    # End-to-end: link_graph_naive's sat-ground branch calls elevation_deg
+    # directly, so a degenerate (coincident) input must surface the same
+    # ValueError as the sat-sat branch already does via has_line_of_sight,
+    # rather than silently producing a NaN-based "no link" entry.
+    config = Config()
+    ground = np.array([R, 0.0, 0.0])
+    sat_at_ground = ground.copy()  # invalid: satellite "at" the ground station
+    positions = np.vstack([sat_at_ground, ground])
+    with pytest.raises(ValueError):
+        link_graph_naive(positions, num_sats=1, config=config, t_s=0.0)
+
+
 def test_graph_properties():
     config = Config()
     positions = node_positions(0.0, config)

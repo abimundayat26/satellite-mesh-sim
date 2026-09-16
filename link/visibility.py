@@ -37,9 +37,12 @@ def in_range(pos_a: np.ndarray, pos_b: np.ndarray, max_range_km: float) -> bool:
 def elevation_deg(ground: np.ndarray, sat: np.ndarray) -> float:
     g = np.asarray(ground, dtype=np.float64)
     s = np.asarray(sat, dtype=np.float64)
-    g_hat = g / np.linalg.norm(g)
     v = s - g
-    sin_el = (g_hat @ v) / np.linalg.norm(v)
+    v_norm = np.linalg.norm(v)
+    if v_norm == 0.0:
+        raise ValueError("elevation_deg: ground and sat are the same position")
+    g_hat = g / np.linalg.norm(g)
+    sin_el = (g_hat @ v) / v_norm
     return float(np.degrees(np.arcsin(np.clip(sin_el, -1.0, 1.0))))
 
 
