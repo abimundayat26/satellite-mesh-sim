@@ -9,6 +9,7 @@ import pytest
 from config import Config
 from link.visibility import LinkGraph
 from config import C_KM_S
+from routing._dijkstra import dijkstra
 from routing.centralized import CentralizedRouter, shortest_paths
 from routing.link_state import LinkStateRouter
 
@@ -189,6 +190,53 @@ def test_ground_station_never_used_as_transit():
     b_router = LinkStateRouter(num_nodes=4, num_sats=3, config=_config_with_k(4))
     b_router.update(graph)
     assert b_router.next_hop_table()[0, 2] == 1
+
+
+def test_dijkstra_rejects_zero_weight_edges():
+    # Zero-weight edges can silently break the "lowest predecessor ID"
+    # tie-break: a same-cost predecessor can be discovered by the heap
+    # *after* the destination node is already finalized/visited, so its
+    # tie-break relaxation gets skipped. Concretely, on this graph (0-3:3,
+    # 1-2:0, 1-3:5, 2-3:5), node 1 is reachable at equal cost 8 via
+    # predecessor 3 (0-3-1) or via predecessor 2 (0-3-2-1); the correct
+    # tie-break winner is predecessor 2 (lower id), but the heap visits
+    # node 1 before node 2's tie relaxation arrives, so an unguarded
+    # implementation would wrongly keep predecessor 3. Rather than accept
+    # an ambiguous fix for this degenerate case (real link latencies are
+    # never zero -- see the elevation_deg/has_line_of_sight coincident-
+    # position guards), dijkstra() rejects such input outright.
+    weight = np.array(
+        [
+            [np.inf, np.inf, np.inf, 3.0],
+            [np.inf, np.inf, 0.0, 5.0],
+            [np.inf, 0.0, np.inf, 5.0],
+            [3.0, 5.0, 5.0, np.inf],
+        ]
+    )
+    with pytest.raises(ValueError):
+        dijkstra(weight, num_sats=4, source=0)
+
+
+def test_dijkstra_rejects_negative_weight_edges():
+    weight = np.array(
+        [
+            [np.inf, -1.0],
+            [-1.0, np.inf],
+        ]
+    )
+    with pytest.raises(ValueError):
+        dijkstra(weight, num_sats=2, source=0)
+
+
+def test_dijkstra_allows_inf_and_zero_diagonal():
+    # The positive-weight guard must only apply to finite *off-diagonal*
+    # entries -- np.inf (no edge) and the all-inf/implicit-zero diagonal
+    # must not trip the check.
+    weight = np.full((3, 3), np.inf)
+    weight[0, 1] = weight[1, 0] = 2.0
+    dist, next_hop = dijkstra(weight, num_sats=3, source=0)
+    np.testing.assert_allclose(dist, [0.0, 2.0, np.inf])
+    np.testing.assert_array_equal(next_hop, [0, 1, -1])
 
 
 def test_dijkstra_matches_floyd_warshall_on_random_graphs():

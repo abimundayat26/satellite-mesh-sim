@@ -15,8 +15,24 @@ def dijkstra(weight: np.ndarray, num_sats: int, source: int):
     Ties go to the lowest predecessor ID. Ground stations (id >= num_sats)
     are never used as a transit hop -- only expanded when they are the
     source itself.
+
+    Requires every finite off-diagonal edge weight to be strictly positive.
+    The lowest-predecessor-ID tie-break relies on this: a node offering an
+    equal-cost alternate path must have a strictly smaller finalized
+    distance than the node it reaches, which is what guarantees it is
+    popped from the heap (and its tie-break relaxation applied) before the
+    reached node is marked visited. A zero (or negative) weight edge can
+    break that ordering and cause the tie-break to be silently skipped.
     """
     v = weight.shape[0]
+    off_diagonal = ~np.eye(v, dtype=bool)
+    finite_off_diagonal = np.isfinite(weight) & off_diagonal
+    if np.any(weight[finite_off_diagonal] <= 0.0):
+        raise ValueError(
+            "dijkstra: all finite edge weights must be strictly positive "
+            "(zero/negative weights break the lowest-predecessor-ID tie-break)"
+        )
+
     dist = np.full(v, np.inf, dtype=np.float64)
     next_hop = np.full(v, -1, dtype=np.int32)
     pred = np.full(v, -1, dtype=np.int32)
