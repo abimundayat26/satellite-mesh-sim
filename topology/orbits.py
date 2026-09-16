@@ -1,43 +1,80 @@
 """
-Simplified circular-orbit topology model (Phase 1).
+Circular-orbit topology model (Phase 1). See SPEC.md §5.1.
 
-Positions are computed for N orbital planes x M satellites per plane,
-evenly phased, constant angular velocity. No perturbations (SGP4 etc).
-See docs/architecture.md for the full spec once you've written it.
+Walker-delta constellation: N planes x M satellites per plane, evenly
+phased with inter-plane phase offset F, constant angular velocity, no
+perturbations (SGP4 etc). Earth is treated as non-rotating.
 """
 import numpy as np
 
-# Compute satellite positions in 3D space at time t
-def satellite_positions(t: float, config) -> np.ndarray:
-    sat_positions = []
-    for p in range(config.num_planes):
-        for i in range(config.sats_per_plane):
-            phase_offset = 2 * np.pi * i / config.sats_per_plane
-            angular_position = phase_offset + 2 * np.pi * t / config.orbital_period_s
-            x = config.r_orbit_km * np.cos(angular_position)
-            y = config.r_orbit_km * np.sin(angular_position)
-            z = y  * np.sin(np.radians(config.inclination_deg))
-            y *= np.cos(np.radians(config.inclination_deg))
-            omega = 2 * np.pi * p / config.num_planes
-            x_temp = x
-            y_temp = y
-            x = x * np.cos(omega) - y * np.sin(omega)
-            y = x_temp * np.sin(omega) + y_temp * np.cos(omega)
-            sat_positions.append((x, y, z))
-    return np.array(sat_positions)
+from config import EARTH_RADIUS_KM, MU_KM3_S2
 
-# Return an array of ground station positions (lat/long to xyz)
-def ground_station_positions(config) -> np.ndarray:
-    ground_station_positions = []
-    for lat, lon in config.ground_stations:
-        x = config.r_earth_km * np.cos(np.radians(lat)) * np.cos(np.radians(lon))
-        y = config.r_earth_km * np.cos(np.radians(lat)) * np.sin(np.radians(lon))
-        z = config.r_earth_km * np.sin(np.radians(lat))
-        ground_station_positions.append((x, y, z))
-    return np.array(ground_station_positions)
+
+def orbit_radius_km(config) -> float:
+    return EARTH_RADIUS_KM + config.altitude_km
 
 
 def orbital_period_s(config) -> float:
-    r_orbit_km = config.r_earth_km + config.altitude_km
-    orbital_period_s = 2 * np.pi * np.sqrt(r_orbit_km**3 / config.mu)
-    return orbital_period_s
+    r_orbit_km = orbit_radius_km(config)
+    return 2 * np.pi * np.sqrt(r_orbit_km**3 / MU_KM3_S2)
+
+
+def num_sats(config) -> int:
+    return config.num_planes * config.sats_per_plane
+
+
+def num_nodes(config) -> int:
+    return num_sats(config) + len(config.ground_stations)
+
+
+def satellite_positions(t_s: float, config) -> np.ndarray:
+    """Positions of all N*M satellites at time t_s, id = p*M + i."""
+    n_planes = config.num_planes
+    m_sats = config.sats_per_plane
+    r = orbit_radius_km(config)
+    inc = np.radians(config.inclination_deg)
+    period_s = orbital_period_s(config)
+
+    p_idx = np.repeat(np.arange(n_planes), m_sats)
+    i_idx = np.tile(np.arange(m_sats), n_planes)
+
+    u = (
+        2 * np.pi * i_idx / m_sats
+        + 2 * np.pi * config.phasing_f * p_idx / (n_planes * m_sats)
+        + 2 * np.pi * t_s / period_s
+    )
+    omega_p = 2 * np.pi * p_idx / n_planes
+
+    x0 = r * np.cos(u)
+    y0 = r * np.sin(u)
+
+    # Rx(inc)
+    y1 = np.cos(inc) * y0
+    z1 = np.sin(inc) * y0
+
+    # Rz(omega_p)
+    x2 = np.cos(omega_p) * x0 - np.sin(omega_p) * y1
+    y2 = np.sin(omega_p) * x0 + np.cos(omega_p) * y1
+    z2 = z1
+
+    return np.ascontiguousarray(np.stack([x2, y2, z2], axis=1))
+
+
+def ground_station_positions(config) -> np.ndarray:
+    """Fixed positions of ground stations on the Earth's surface."""
+    stations = np.asarray(config.ground_stations, dtype=np.float64)
+    lat = np.radians(stations[:, 0])
+    lon = np.radians(stations[:, 1])
+
+    x = EARTH_RADIUS_KM * np.cos(lat) * np.cos(lon)
+    y = EARTH_RADIUS_KM * np.cos(lat) * np.sin(lon)
+    z = EARTH_RADIUS_KM * np.sin(lat)
+
+    return np.ascontiguousarray(np.stack([x, y, z], axis=1))
+
+
+def node_positions(t_s: float, config) -> np.ndarray:
+    """Satellites first, then ground stations."""
+    return np.ascontiguousarray(
+        np.vstack([satellite_positions(t_s, config), ground_station_positions(config)])
+    )

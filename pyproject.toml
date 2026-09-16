@@ -1,0 +1,29 @@
+[project]
+name = "satellite-mesh-sim"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "abimundayat26", email = "abinav.mundayat@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "pybind11",
+]
+
+[project.scripts]
+satellite-mesh-sim = "satellite_mesh_sim:main"
+
+[build-system]
+requires = ["uv_build>=0.12.15,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
