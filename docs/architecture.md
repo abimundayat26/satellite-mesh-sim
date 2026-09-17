@@ -42,3 +42,21 @@ and the gap widens with N since all three are O(N²).
   AVX2 over a structure-of-arrays position layout) or OpenMP row
   parallelism over the outer loop, since each row `i` is independent.
   Neither was needed to hit the correctness/benchmark goals of this phase.
+
+## Fault recovery (Phase 6)
+
+`benchmarks/fault_recovery.py` kills one satellite and, separately, one
+ground station partway through a run and plots per-step delivery ratio
+from 600s before to 1200s after the fault for both A (centralized) and B
+(link-state); see `docs/fault_recovery.png`. It uses a smaller constellation
+(4 planes x 6 satellites) than the SPEC default: with the full 144-satellite
+constellation, inter-satellite links appear and disappear every single
+timestep as satellites move, so B's link-state database never settles even
+without a fault (SPEC.md §7's flapping/staleness) and any fault-specific
+signal is lost in that background churn. At this smaller size, delivery
+ratio is still dominated by orbital geometry -- ground stations only see a
+satellite intermittently, producing the periodic plateaus/troughs visible
+on both sides of the fault -- but A's centralized rerouting recovers as
+soon as another satellite comes into view, while B's `rounds_since_change`
+spikes above its pre-fault baseline right after the fault as the affected
+node's neighbours re-originate and reflood their LSAs.
