@@ -37,7 +37,9 @@ performance under normal conditions, and the C++ speedup) live in
     pip install -r requirements.txt
 
     # optional: build the C++ extension (off by default, see Config.use_cpp)
-    cd cpp_ext && cmake -B build && cmake --build build
+    cd cpp_ext
+    cmake -B build -Dpybind11_DIR="$(python -m pybind11 --cmakedir)"
+    cmake --build build
 
 ## Running it
 
