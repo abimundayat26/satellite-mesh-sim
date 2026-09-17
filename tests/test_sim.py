@@ -4,7 +4,6 @@ Phase 5 (SPEC.md §5.5, §6) and Phase 7 regression tests.
 import dataclasses
 
 import numpy as np
-import pytest
 
 from config import Config
 from sim.engine import run_simulation
@@ -105,8 +104,22 @@ def test_link_state_runs_without_error():
 
 
 # --- Phase 7 regression test -------------------------------------------
-# Baseline recorded from a known-good run of `run_simulation(Config(), "link_state")`
-# with seed 42, duration_s=1200 (default constellation). Not yet run against
-# the default-size constellation (slow); left as a documented TODO.
+# Baseline recorded from a known-good run of
+# `run_simulation(Config(duration_s=1200.0), "link_state")` (seed 42, default
+# constellation):
+#   delivery_ratio  = 0.99875
+#   mean_latency_s  = 0.04286071753260577
+#   mean_hops       = 4.824780976220275
+#   misrouted_frac  = 0.45125
 def test_short_run_metrics_within_expected_range():
-    pytest.skip("not implemented: needs baseline recorded from a default-config run")
+    cfg = Config(duration_s=1200.0)
+    result = run_simulation(cfg, router="link_state")
+
+    assert abs(result.metrics["delivery_ratio"] - 0.99875) <= 0.02
+    assert abs(result.metrics["misrouted_frac"] - 0.45125) <= 0.02
+
+    baseline_mean_latency_s = 0.04286071753260577
+    assert abs(result.metrics["mean_latency_s"] - baseline_mean_latency_s) <= 0.1 * baseline_mean_latency_s
+
+    baseline_mean_hops = 4.824780976220275
+    assert abs(result.metrics["mean_hops"] - baseline_mean_hops) <= 0.1 * baseline_mean_hops
