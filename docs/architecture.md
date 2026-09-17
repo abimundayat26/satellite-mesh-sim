@@ -1,11 +1,109 @@
 # Architecture
 
-TODO (Phase 8): fill in once the pieces exist.
+A LEO satellite mesh has a topology that is fully deterministic and
+computable ahead of time from orbital mechanics, but a real onboard router
+still can't consult a global oracle -- it has to discover and converge on
+routes from local, distributed information under bounded convergence time.
+See the README for the full problem statement; this document covers the
+pipeline, the three result plots, and open discussion points.
 
-- Problem statement -- why LEO routing differs from terrestrial networking
-- Diagram: topology -> link model (Python + C++) -> routing (A vs B) -> sim loop -> metrics
-- Results: benchmark plot, normal-operation delivery/latency plot, fault-recovery plot
-- What I'd do next
+## Pipeline
+
+    config.py
+      (Config: constellation size, timestep, ground stations, faults, ...)
+              |
+              v
+    topology/orbits.py
+      (deterministic satellite + ground-station positions each timestep;
+       derives orbital_period_s, num_sats, num_nodes from Config)
+              |
+              v
+    link/visibility.py
+      (line-of-sight + range/elevation checks -> LinkGraph;
+       numpy-vectorized `link_graph`, or the C++ port via cpp_ext --
+       see "Link-graph hot path" below)
+              |
+              v
+    routing/
+      A: centralized.py    global Dijkstra, recomputed fresh every
+                            step from the true graph (oracle baseline)
+      B: link_state.py      per-node LSA origination + K-round flooding,
+                            each node runs Dijkstra (_dijkstra.py) over
+                            its own local view (realistic convergence)
+              |
+              v
+    sim/engine.py :: run_simulation(config, router) -> SimResult
+      - steps the constellation forward in time
+      - rebuilds the link graph each step (applying any fault)
+      - re-routes (A recomputes; B floods/re-converges)
+      - forwards packets_per_step packets hop-by-hop over the current
+        topology
+              |
+              v
+    sim/metrics.py
+      (per-packet + per-step aggregation: delivery_ratio, mean_latency_s,
+       mean_hops, converged_step_frac, mean_rounds_to_converge, ...
+       -- exact keys in SPEC.md §5.5)
+
+## Results
+
+### 1. Link-graph hot path (Phase 3)
+
+See "Link-graph hot path: Python vs. C++ (Phase 3)" below.
+
+### 2. Normal operation: delivery ratio and latency over time
+
+`benchmarks/normal_operation.py` runs the full default constellation
+(8 planes x 18 satellites) with no fault, for both A and B, and plots
+per-step delivery ratio and mean latency across the whole 12,000 s run;
+see `docs/normal_operation.png`. Unlike the fault-recovery benchmark
+below, this deliberately keeps the SPEC default size rather than shrinking
+it, since the point here is B's behaviour under the topology churn that
+size produces every timestep.
+
+Both routers deliver essentially every packet throughout the run (A:
+`delivery_ratio` = 1.0000; B: 0.9999) and track closely in mean latency
+(A: 0.0424 s, B: 0.0425 s), confirming B's local Dijkstra finds routes
+that are nearly as good as A's global ones even without ever fully
+converging. B's `converged_step_frac` is 0.0 and `mean_rounds_to_converge`
+sits at the K=5 cap for essentially every step: with 144 satellites in
+constant relative motion, some node's neighbour set changes on almost
+every timestep, so flooding never finishes before the next graph arrives
+and B is permanently mid-flood (SPEC.md §7's staleness/flapping, exactly
+as intended). This shows up in the latency panel as extra high-frequency
+noise and occasional spikes for B that A doesn't have -- routes computed
+from a stale two-way-checked LSDB view are occasionally a hop or two
+longer than the true optimum, even though they still deliver.
+
+### 3. Fault recovery (Phase 6)
+
+See "Fault recovery (Phase 6)" below.
+
+## What I'd do next
+
+Beyond the Phase-3-specific hot-path optimizations discussed below:
+
+- **Scale.** Spatial partitioning -- bucket satellites by orbital
+  plane/shell, or a k-d tree over positions -- so the link-graph
+  computation and B's neighbour discovery don't require an O(N^2) scan
+  every step, combined with the SIMD/OpenMP ideas already noted below.
+- **Realism.** Real orbital mechanics (SGP4/perturbations) and Earth
+  rotation, rather than the simplified circular-orbit model in
+  `topology/orbits.py`.
+- **Scope gaps left out deliberately (SPEC.md §1, §7).** No link
+  capacity, queues, or congestion, so delivery ratio here reflects
+  routing and coverage only; snapshot forwarding, so a packet's whole
+  path is walked over one timestep's graph and ignores topology changes
+  while it's "in flight"; LSA latencies freeze at origination and go
+  stale between neighbour-set changes; flapping, where a topology change
+  before flooding finishes makes carried-over LSAs race newer ones; no
+  laser pointing/acquisition delay or per-satellite terminal limits; no
+  ground-to-ground links or ground-station transit relaying; no handover
+  signalling.
+- **Validation.** Compare B's link-state design and its measured
+  convergence behaviour against real published LEO inter-satellite-link
+  routing schemes, rather than only against the in-repo centralized
+  oracle.
 
 ## Link-graph hot path: Python vs. C++ (Phase 3)
 
