@@ -1,18 +1,17 @@
 # Satellite Mesh Routing Simulator
 
-A simulator for routing over a LEO satellite constellation. The interesting
-part: a constellation's topology is deterministic -- you can compute exactly
-where every satellite will be at any time -- but no single satellite has a
-global view of the network. It still has to find routes using only what its
-neighbors tell it.
+A simulator for routing over a LEO satellite constellation. A constellation's
+topology is deterministic, you can compute exactly where every satellite
+will be at any time, but no single satellite has a global view of the
+network. It still has to find routes using only what its neighbors tell it.
 
 This project builds a time-varying constellation (Walker-delta orbits, ~144
 satellites + 6 ground stations) and runs two routers over it:
 
-- **A (centralized)** -- recomputes global shortest paths every timestep
+- **A (centralized)**: recomputes global shortest paths every timestep
   with full knowledge of the graph. Not realistic, but it's a useful upper
   bound to compare against.
-- **B (link-state)** -- each satellite only knows its own neighbors at
+- **B (link-state)**: each satellite only knows its own neighbors at
   first, floods link-state updates for a few rounds, and routes off
   whatever it's managed to learn. This is the "real" one, staleness and
   all.
@@ -27,8 +26,8 @@ numpy-vectorized Python.
 ![Delivery ratio before and after a node failure](docs/fault_recovery.png)
 
 Kill a satellite mid-run and both routers eventually recover, but not the
-same way -- A reroutes the instant another satellite comes into view, while
-B needs a few rounds of flooding before it catches up. More plots (routing
+same way. A reroutes the instant another satellite comes into view, while B
+needs a few rounds of flooding before it catches up. More plots (routing
 performance under normal conditions, and the C++ speedup) live in
 `docs/architecture.md`.
 
