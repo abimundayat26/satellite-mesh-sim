@@ -1,9 +1,6 @@
 """
-Approach A -- centralized/reactive baseline (Phase 4, SPEC.md §5.4).
-
-Recomputes global shortest paths from scratch every timestep, given
-complete topology knowledge. Unrealistic (no real network has instant
-global knowledge) but gives an upper bound to compare Approach B against.
+Approach A -- centralized baseline. Recomputes global shortest paths every
+timestep from the true graph; an oracle upper bound to compare B against.
 """
 import numpy as np
 

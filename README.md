@@ -1,21 +1,14 @@
 # Satellite Mesh Routing Simulator
 
-Terrestrial network routing (BGP, OSPF, ...) reacts to topology it cannot
-predict in advance: links fail, traffic shifts, peers appear. A LEO
-satellite mesh is different — the topology is fully deterministic and
-computable ahead of time from orbital mechanics — yet a real satellite's
-onboard router can't just consult a global oracle; it still has to
-discover and converge on routes from local, distributed information,
-bounded by real convergence time. This project simulates a time-varying
-LEO constellation and compares two routers built against that same
-known-topology-but-locally-unknown setup: **A**, a centralized baseline
-with instantaneous global knowledge (an oracle / upper bound), and **B**,
-a distributed link-state router with realistic flooding and convergence
-delay — to measure the practical routing cost when a network's future is
-knowable in principle but must still be learned in practice.
+A LEO constellation's topology is deterministic and known in advance, but
+no satellite has a global view -- it still has to discover and converge on
+routes locally. This project simulates a time-varying constellation and
+compares two routers against that setup: **A**, a centralized oracle with
+instant global knowledge, and **B**, a distributed link-state router with
+realistic flooding and bounded convergence.
 
-See `docs/architecture.md` for the architecture diagram, results, and
-discussion, and `PROJECT_PLAN.md` for the phase-by-phase build log.
+See `docs/architecture.md` for the diagram and results, `PROJECT_PLAN.md`
+for the build log.
 
 ## Setup
 

@@ -57,15 +57,11 @@ def test_elevation_overhead_and_boundary():
     assert elevation_deg(ground, sat_overhead) == pytest.approx(90.0, abs=1e-9)
 
     min_el = 10.0
-    # place a satellite at exactly min_el elevation, then nudge +/- 0.01 deg
-    # sin(el) = R * sin(theta) / dist, with theta = angular offset from ground; solve geometrically:
-    # for a point on the ground-station radial plane at orbit radius r_orbit,
-    # elevation as function of the central angle theta between ground and sat:
+    # Place a satellite at exactly min_el elevation, then nudge +/- 0.01 deg.
     r_orbit = R + 550.0
 
     def sat_at_elevation(el_deg):
-        # Solve for the central angle theta such that elevation_deg(ground, sat) == el_deg
-        # via bisection, since it's monotonic in theta over (0, pi/2ish).
+        # Bisect on the central angle theta; elevation is monotonic in it.
         def el_of_theta(theta):
             sat = np.array([r_orbit * np.cos(theta), r_orbit * np.sin(theta), 0.0])
             return elevation_deg(ground, sat)
@@ -94,17 +90,14 @@ def test_has_line_of_sight_raises_on_coincident_positions():
 
 
 def test_elevation_deg_raises_on_coincident_positions():
-    # A satellite and ground station at the exact same point: ‖s-g‖ == 0,
-    # so elevation is undefined and must not silently divide by zero.
+    # ‖s-g‖ == 0 makes elevation undefined; must not silently divide by zero.
     same_point = np.array([R, 0.0, 0.0])
     with pytest.raises(ValueError):
         elevation_deg(same_point, same_point.copy())
 
 
 def test_elevation_deg_raises_regardless_of_which_arg_is_ground_vs_sat():
-    # Same coincident-position guard must trigger no matter which side of
-    # the (ground, sat) pair the caller happens to pass; only the vector
-    # ‖s-g‖ matters, not which name is bound to which array.
+    # The guard must trigger regardless of argument order.
     same_point = np.array([R + 100.0, 50.0, -20.0])
     with pytest.raises(ValueError):
         elevation_deg(same_point, same_point.copy())
@@ -113,18 +106,14 @@ def test_elevation_deg_raises_regardless_of_which_arg_is_ground_vs_sat():
 
 
 def test_elevation_deg_still_correct_near_but_not_at_coincidence():
-    # Guard against an overly aggressive fix that rejects near-zero (but
-    # nonzero) separations -- only exact coincidence should raise.
+    # Only exact coincidence should raise, not a near-zero separation.
     ground = np.array([R, 0.0, 0.0])
     sat = np.array([R + 1e-6, 0.0, 0.0])  # 1 mm above the ground station
     assert elevation_deg(ground, sat) == pytest.approx(90.0, abs=1e-3)
 
 
 def test_link_graph_naive_raises_on_coincident_sat_ground_pair():
-    # End-to-end: link_graph_naive's sat-ground branch calls elevation_deg
-    # directly, so a degenerate (coincident) input must surface the same
-    # ValueError as the sat-sat branch already does via has_line_of_sight,
-    # rather than silently producing a NaN-based "no link" entry.
+    # The sat-ground branch must surface the same guard as sat-sat does.
     config = Config()
     ground = np.array([R, 0.0, 0.0])
     sat_at_ground = ground.copy()  # invalid: satellite "at" the ground station

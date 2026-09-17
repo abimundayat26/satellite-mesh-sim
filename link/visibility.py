@@ -1,12 +1,7 @@
 """
-Link / visibility model (Phase 2). See SPEC.md §4, §5.2.
-
-Given node positions at a timestep, determine which pairs have a valid
-link (line-of-sight not blocked by Earth, within max range / elevation),
-and the link latency.
-
-This module's pairwise check is the O(N^2) hot path -- see cpp_ext/ for
-the ported version (Phase 3).
+Link / visibility model. Given node positions, determines which pairs
+have a valid link (line-of-sight, range, elevation) and its latency.
+The pairwise check is the O(N^2) hot path -- see cpp_ext/ for the port.
 """
 from dataclasses import dataclass
 

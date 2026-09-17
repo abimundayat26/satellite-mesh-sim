@@ -28,11 +28,8 @@ PLOT_PATH = "docs/fault_recovery.png"
 FAULT_KINDS = ("satellite", "ground_station")
 ROUTERS = ("centralized", "link_state")
 
-# A smaller constellation than the SPEC default: with 8x18=144 satellites the
-# topology churns every single timestep (links appear/disappear continuously
-# as satellites move), which drowns out any fault-specific convergence signal
-# in background flapping (SPEC.md §7). This size still shows the same
-# fault/routing behaviour while keeping runtime and the plot readable.
+# Smaller than the SPEC default: at full size the topology churns every
+# timestep, which drowns out the fault signal in background flapping.
 BASE_CONFIG_KWARGS = dict(num_planes=4, sats_per_plane=6, packets_per_step=200)
 
 
@@ -68,13 +65,9 @@ RECONVERGENCE_PEAK_WINDOW_S = 120.0
 def _reconvergence_rounds(per_step) -> tuple:
     """Baseline vs. fault-induced peak of B's rounds_since_change.
 
-    The default constellation's topology churns every timestep as
-    satellites move, so LinkStateRouter (SPEC.md §7: staleness/flapping
-    are intended) rarely reports converged=True even without a fault --
-    "time to full convergence" isn't a meaningful number here. Instead we
-    compare the background rounds_since_change (averaged over the window
-    just before the fault) to its peak just after the fault, which
-    isolates the extra convergence work the fault itself causes.
+    Topology churn means B rarely reports converged=True even without a
+    fault, so we compare background rounds_since_change to its post-fault
+    peak instead of a "time to converge" number.
     """
     t_s = per_step["t_s"]
     rounds = per_step["rounds_to_converge"]

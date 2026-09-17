@@ -1,9 +1,6 @@
 """
-Circular-orbit topology model (Phase 1). See SPEC.md §5.1.
-
-Walker-delta constellation: N planes x M satellites per plane, evenly
-phased with inter-plane phase offset F, constant angular velocity, no
-perturbations (SGP4 etc). Earth is treated as non-rotating.
+Circular-orbit Walker-delta constellation: N planes x M satellites,
+constant angular velocity, no perturbations, non-rotating Earth.
 """
 import numpy as np
 

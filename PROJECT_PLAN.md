@@ -1,8 +1,7 @@
 # Satellite Mesh Routing Simulator — Project Outline
 
-**Goal:** resume project for SpaceX SWE application, targeting Starlink/Starshield (networking), Dragon/Falcon (verification discipline), and Starship/Silicon (systems-level via the C++ piece).
-**Budget:** ~19-24h realistic (see trimming notes at the end to pull this back toward 20h).
-**Stack:** Python 3.x + numpy + matplotlib + pytest for everything; one C++17 + pybind11 extension for the hot path; CMake or setuptools for the build.
+**Goal:** simulate LEO satellite mesh routing end to end -- topology, link model, two routing strategies, a C++ hot-path port, and fault injection.
+**Stack:** Python 3 + numpy + matplotlib + pytest; one C++17 + pybind11 extension for the hot path; CMake.
 
 ---
 
@@ -48,7 +47,7 @@
 ## Phase 3 — C++ Hot-Path Port (3-4h)
 - [ ] Write a small pybind11 extension that takes the position array for time `t` and returns the same adjacency structure as your Python `link_graph(t)`
 - [ ] Build it (CMake or `setup.py` + pybind11) as an importable Python module
-- [ ] **Correctness first:** unit test that the C++ output matches the Python output exactly (or within float tolerance) on identical inputs, across several timesteps — this is the same "validate against a known-good reference" pattern as your LOB work, just with your own Python version as ground truth instead of LOBSTER
+- [ ] **Correctness first:** unit test that the C++ output matches the Python output exactly (or within float tolerance) on identical inputs, across several timesteps
 - [ ] **Benchmark second:** wall-clock time, pure Python (both a naive loop version and your numpy-vectorized version) vs. the C++ extension, across increasing N (e.g. 10 / 50 / 100 / 200 / 500 satellites). Plot it.
 - [ ] Write up *why*: interpreter overhead per pair-check in the naive loop, what numpy vectorization buys you, and what the C++ version does differently (no per-element Python object overhead, tighter memory layout). Note what you'd do next for further speedup (spatial partitioning to avoid O(N²) altogether, SIMD) even if you don't implement it.
 
@@ -105,18 +104,3 @@ This is where the "real" comparison lives — make it a genuine contrast, not tw
 - [ ] Short "what I'd do next" section: spatial partitioning for scale, real orbital mechanics (SGP4), comparison to actual space-routing literature — shows you know the limits of what you built
 
 ---
-
-## If you need to cut time
-Cutting in this order costs the least relative to what each phase proves:
-1. **Fault injection (Phase 6)** — saves ~1-2h, loses the reliability narrative but keeps everything else intact
-2. **Simplify Approach B** — fewer convergence rounds, skip the flapping discussion — saves ~1-2h
-3. **Drop CI in Phase 7** — saves ~30min, was optional anyway
-
-Cutting all three lands you close to 20h. Don't cut Phase 3 (the C++ piece) — that's the one thing nothing else on your resume currently proves.
-
-## What each phase proves (mapping back to the posting)
-- **Networks:** Phases 1-2, 4-5 — routing, topology, distributed convergence
-- **Computer architecture:** Phase 3 — profiling, low-level performance work
-- **Documentation/diagrams/requirements:** Phase 0, Phase 8
-- **Debugging/performance/testing:** Phases 3 and 7 explicitly, but really every phase's test list
-

@@ -118,14 +118,8 @@ def test_link_state_converges_to_correct_paths():
     np.testing.assert_array_equal(router_k1.next_hop_table(), a_table)
 
 
-# A 6-node graph where node 0's *own* best next hop to node 5 depends on an
-# edge (3-5) that is 2 hops away from node 0. This is deliberately not the
-# 5-node fixed graph above: there, every node is within 1 hop of any edge,
-# so K=1 already suffices to reconverge and never exhibits the staleness
-# SPEC.md's acceptance test requires ("with K=1, the first update leaves at
-# least one row different from A"). Here, node 0 needs the news of the
-# 3-5 failure to propagate two hops (3 -> 1 -> 0), so a single K=1 round
-# is provably not enough.
+# 6-node chain graph: node 0's route to 5 depends on edge 3-5, two hops
+# away, so a single K=1 round isn't enough to hear about its failure.
 _CHAIN_EDGES_MS = {
     (0, 1): 1.0,
     (0, 2): 1.0,
@@ -193,18 +187,9 @@ def test_ground_station_never_used_as_transit():
 
 
 def test_dijkstra_rejects_zero_weight_edges():
-    # Zero-weight edges can silently break the "lowest predecessor ID"
-    # tie-break: a same-cost predecessor can be discovered by the heap
-    # *after* the destination node is already finalized/visited, so its
-    # tie-break relaxation gets skipped. Concretely, on this graph (0-3:3,
-    # 1-2:0, 1-3:5, 2-3:5), node 1 is reachable at equal cost 8 via
-    # predecessor 3 (0-3-1) or via predecessor 2 (0-3-2-1); the correct
-    # tie-break winner is predecessor 2 (lower id), but the heap visits
-    # node 1 before node 2's tie relaxation arrives, so an unguarded
-    # implementation would wrongly keep predecessor 3. Rather than accept
-    # an ambiguous fix for this degenerate case (real link latencies are
-    # never zero -- see the elevation_deg/has_line_of_sight coincident-
-    # position guards), dijkstra() rejects such input outright.
+    # On this graph, node 1 is reachable at equal cost via predecessor 3 or 2,
+    # but a zero-weight edge lets the heap finalize node 1 before predecessor
+    # 2's tie-break relaxation arrives. dijkstra() rejects zero weights instead.
     weight = np.array(
         [
             [np.inf, np.inf, np.inf, 3.0],

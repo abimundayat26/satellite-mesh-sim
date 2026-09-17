@@ -1,14 +1,8 @@
 """
-Approach B -- distributed link-state routing (Phase 4, SPEC.md §5.4).
-
-Each node keeps its own link-state database (lsdb) and outbox *across
-timesteps*. On update(): originate LSAs on neighbour-set change, flood
-synchronously for K = config.max_convergence_rounds rounds (leftover
-outbox carries over to the next timestep's graph), then each node runs
-Dijkstra on its own view.
-
-Staleness and flapping are intended, measured behaviour -- see SPEC.md §7.
-Don't "fix" them.
+Approach B -- distributed link-state routing. Each node keeps its own
+LSA database and outbox across timesteps, floods for K rounds on
+neighbor-set changes, then runs Dijkstra over its own view. Staleness and
+flapping are intended, measured behaviour (SPEC.md §7).
 """
 from dataclasses import dataclass
 

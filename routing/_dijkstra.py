@@ -11,18 +11,10 @@ import numpy as np
 def dijkstra(weight: np.ndarray, num_sats: int, source: int):
     """Single-source shortest paths over `weight` ((V,V) float64, inf = no edge).
 
-    Returns (dist_s: (V,) float64, next_hop: (V,) int32).
-    Ties go to the lowest predecessor ID. Ground stations (id >= num_sats)
-    are never used as a transit hop -- only expanded when they are the
-    source itself.
-
-    Requires every finite off-diagonal edge weight to be strictly positive.
-    The lowest-predecessor-ID tie-break relies on this: a node offering an
-    equal-cost alternate path must have a strictly smaller finalized
-    distance than the node it reaches, which is what guarantees it is
-    popped from the heap (and its tie-break relaxation applied) before the
-    reached node is marked visited. A zero (or negative) weight edge can
-    break that ordering and cause the tie-break to be silently skipped.
+    Returns (dist_s: (V,) float64, next_hop: (V,) int32). Ties go to the
+    lowest predecessor ID; ground stations (id >= num_sats) are never a
+    transit hop. Requires strictly positive finite edge weights -- a zero
+    or negative weight can break the heap ordering the tie-break relies on.
     """
     v = weight.shape[0]
     off_diagonal = ~np.eye(v, dtype=bool)

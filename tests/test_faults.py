@@ -1,10 +1,6 @@
 """
-Phase 6 fault-injection acceptance tests. See SPEC.md §6 "Phase 6 — faults".
-
-The fault-injection mechanics themselves live in sim/engine.py (already
-implemented as part of Phase 5): a dead node's graph row/column go to inf
-from fault_time_s onward, and traffic never originates/terminates at a dead
-ground station. These tests only verify that observable contract.
+Fault-injection acceptance tests: a dead node's graph row/column go to inf
+from fault_time_s onward, and traffic never touches a dead ground station.
 """
 from config import Config
 from sim.engine import run_simulation

@@ -1,13 +1,8 @@
 """
-Phase 8 deliverable: per-step delivery ratio and latency over a full,
-fault-free run, for both routing approaches. Produces
-docs/normal_operation.png. See PROJECT_PLAN.md Phase 8 and SPEC.md §7.
-
-Unlike benchmarks/fault_recovery.py, this uses the SPEC default
-constellation (8 planes x 18 satellites) unmodified: the point here is to
-show B's link-state database under the topology churn that the default
-size produces every timestep (SPEC.md §7 staleness/flapping), which
-fault_recovery.py deliberately avoids by shrinking the constellation.
+Per-step delivery ratio and latency over a full, fault-free run, for both
+routing approaches. Produces docs/normal_operation.png. Uses the full
+default constellation (unlike fault_recovery.py) to show B's link-state
+database under normal topology churn.
 """
 import sys
 from pathlib import Path
