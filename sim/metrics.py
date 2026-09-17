@@ -1,5 +1,5 @@
 """
-Metrics aggregation (Phase 5/6). See SPEC.md §4, §5.5.
+Metrics aggregation.
 """
 from dataclasses import dataclass
 from enum import Enum
@@ -37,7 +37,7 @@ def compute_metrics(
     per_step_rounds_to_converge: np.ndarray,
 ) -> dict:
     """From the packet log and per-step convergence stats, compute the
-    exact metrics keys required by SPEC.md §5.5."""
+    summary metrics."""
     packets_sent = len(packets)
     delivered = [p for p in packets if p.status is PacketStatus.DELIVERED]
     packets_delivered = len(delivered)

@@ -1,7 +1,6 @@
 """
-Phase 6 deliverable: per-step delivery-ratio recovery around a single-node
-failure, for both routing approaches. Produces docs/fault_recovery.png.
-See SPEC.md §6 "Phase 6 -- faults".
+Per-step delivery-ratio recovery around a single-node failure, for both
+routing approaches. Produces docs/fault_recovery.png.
 """
 import sys
 from pathlib import Path

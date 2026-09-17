@@ -1,6 +1,6 @@
 """
-Shared routing interface (SPEC.md §5.4). Approach A (routing/centralized.py)
-and Approach B (routing/link_state.py) both implement this protocol.
+Shared routing interface. Approach A (routing/centralized.py) and
+Approach B (routing/link_state.py) both implement this protocol.
 """
 from typing import Protocol
 

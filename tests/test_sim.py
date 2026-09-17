@@ -1,5 +1,5 @@
 """
-Phase 5 (SPEC.md §5.5, §6) and Phase 7 regression tests.
+Simulation-engine and regression tests.
 """
 import dataclasses
 

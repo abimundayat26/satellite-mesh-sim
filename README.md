@@ -7,13 +7,12 @@ compares two routers against that setup: **A**, a centralized oracle with
 instant global knowledge, and **B**, a distributed link-state router with
 realistic flooding and bounded convergence.
 
-See `docs/architecture.md` for the diagram and results, `PROJECT_PLAN.md`
-for the build log.
+See `docs/architecture.md` for the diagram and results.
 
 ## Setup
 
     pip install -r requirements.txt
-    # build the C++ extension (Phase 3; optional -- Config.use_cpp is False by default)
+    # build the C++ extension (optional -- Config.use_cpp is False by default)
     cd cpp_ext && cmake -B build && cmake --build build
 
 ## How to run
@@ -26,7 +25,7 @@ for the build log.
     result = run_simulation(Config(), router="link_state")  # or "centralized"
     print(result.metrics)
 
-`result.metrics` holds the summary metrics defined in SPEC.md §5.5
+`result.metrics` holds the summary metrics
 (`delivery_ratio`, `mean_latency_s`, `converged_step_frac`, ...);
 `result.per_step` holds the same quantities broken out per timestep, and
 `result.packets` holds the full per-packet log.

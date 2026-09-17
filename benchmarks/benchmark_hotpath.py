@@ -1,7 +1,7 @@
 """
 Phase 3 benchmark: pure Python (naive + numpy-vectorized) vs. the C++
 extension, across increasing satellite counts. Produces benchmarks/results.csv
-and docs/benchmark_hotpath.png. See SPEC.md §5.6.
+and docs/benchmark_hotpath.png.
 """
 import csv
 import sys

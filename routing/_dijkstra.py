@@ -1,7 +1,6 @@
 """
-Shared hand-written Dijkstra used by both Approach A and Approach B
-(SPEC.md §5.4), so their tie-break and ground-station-transit rules can
-never drift apart.
+Shared hand-written Dijkstra used by both Approach A and Approach B, so
+their tie-break and ground-station-transit rules can never drift apart.
 """
 import heapq
 

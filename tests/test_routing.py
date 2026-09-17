@@ -1,7 +1,7 @@
 """
-Phase 4 tests (SPEC.md §6): small fixed topology, hand-computed shortest
-paths -- verify both Approach A (centralized) and Approach B (link-state)
-converge to the correct routing table.
+Small fixed topology, hand-computed shortest paths -- verify both
+Approach A (centralized) and Approach B (link-state) converge to the
+correct routing table.
 """
 import numpy as np
 import pytest

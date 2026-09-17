@@ -1,7 +1,6 @@
 """
-Phase 3: prove the C++ extension matches the Python reference exactly
-(within float tolerance) before trusting the benchmark numbers. See
-SPEC.md §5.3, §6 Phase 3.
+Prove the C++ extension matches the Python reference exactly (within
+float tolerance) before trusting the benchmark numbers.
 """
 import numpy as np
 import pytest

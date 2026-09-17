@@ -1,4 +1,4 @@
-// Phase 3: C++ port of the link/visibility hot path. See SPEC.md §5.2, §5.3.
+// C++ port of the link/visibility hot path.
 //
 // Mirrors the exact floating-point operation order of link.visibility.link_graph()
 // (the numpy-vectorized reference) so that parity holds at rtol=1e-12

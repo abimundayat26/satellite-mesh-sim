@@ -4,4 +4,6 @@ build/
 *.so
 .pytest_cache/
 CLAUDE.md
+SPEC.md
+PROJECT_PLAN.md
 

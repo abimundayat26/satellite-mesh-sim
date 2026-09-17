@@ -1,5 +1,5 @@
 """Phase 2 tests: hand-built visibility cases, boundary conditions, and
-default-config sanity checks. See SPEC.md §6 Phase 2."""
+default-config sanity checks."""
 import numpy as np
 import pytest
 

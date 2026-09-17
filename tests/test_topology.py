@@ -1,4 +1,4 @@
-"""Phase 1 tests: known positions at t=0, periodicity at t=T. See SPEC.md §6."""
+"""Topology tests: known positions at t=0, periodicity at t=T."""
 import numpy as np
 
 from config import Config, EARTH_RADIUS_KM

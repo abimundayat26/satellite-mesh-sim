@@ -1,8 +1,6 @@
 """
-Main simulation loop (Phase 5). See SPEC.md §5.5.
-
-Ties together topology -> link graph -> routing -> traffic injection
--> metrics collection.
+Main simulation loop: ties together topology -> link graph -> routing ->
+traffic injection -> metrics collection.
 """
 from dataclasses import dataclass
 from typing import Literal

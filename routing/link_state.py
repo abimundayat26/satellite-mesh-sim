@@ -2,7 +2,7 @@
 Approach B -- distributed link-state routing. Each node keeps its own
 LSA database and outbox across timesteps, floods for K rounds on
 neighbor-set changes, then runs Dijkstra over its own view. Staleness and
-flapping are intended, measured behaviour (SPEC.md §7).
+flapping are intended, measured behaviour.
 """
 from dataclasses import dataclass
 
