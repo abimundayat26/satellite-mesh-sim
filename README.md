@@ -33,7 +33,12 @@ performance under normal conditions, and the C++ speedup) live in
 
 ## Setup
 
+Requires Python 3.14.
+
     pip install -r requirements.txt
+
+If you use [uv](https://docs.astral.sh/uv/) instead, `uv sync` installs the
+same dependencies from `pyproject.toml`.
 
     # optional: build the C++ extension (off by default, see Config.use_cpp)
     cd cpp_ext
